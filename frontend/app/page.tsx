@@ -31,14 +31,14 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#0B0B0F] gap-8">
 
-      <div className="flex flex-col md:flex-row gap-4 w-full max-w-5xl items-end md:items-stretch">
+      <div className="flex flex-col md:flex-row gap-4 w-full max-w-5xl items-center md:items-stretch">
 
         {/* Main Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
-          className="flex-1 w-full rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden flex flex-col justify-center items-center min-h-[500px]"
+          className="flex-1 w-full rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-2xl relative overflow-hidden flex flex-col justify-center items-center min-h-[auto] md:min-h-[500px]"
           style={{ backgroundColor: theme?.bg, color: theme?.text }}
         >
           {/* Decorative Elements */}
@@ -51,7 +51,7 @@ export default function Home() {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.9]">
+              <h1 className="text-4xl md:text-8xl font-black tracking-tighter mb-6 leading-[0.9]">
                 POLLING<br />REIMAGINED
               </h1>
 
@@ -99,7 +99,7 @@ export default function Home() {
             <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
               <span className="text-xl">⚡</span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest hidden md:block">Fast</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest block md:block">Fast</span>
           </div>
 
           <div className="w-full h-[1px] bg-white/10 md:block hidden" />
@@ -108,7 +108,7 @@ export default function Home() {
             <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
               <span className="text-xl">🔒</span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest hidden md:block">Secure</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest block md:block">Secure</span>
           </div>
 
           <div className="w-full h-[1px] bg-white/10 md:block hidden" />
@@ -117,7 +117,7 @@ export default function Home() {
             <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center bg-white/5">
               <span className="text-xl">🎨</span>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-widest hidden md:block">Funky</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest block md:block">Funky</span>
           </div>
         </motion.div>
       </div>
@@ -129,7 +129,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="rounded-[2.5rem] p-8 min-h-[300px] flex flex-col justify-between relative overflow-hidden group"
+          className="rounded-[2.5rem] p-6 md:p-8 min-h-[250px] md:min-h-[300px] flex flex-col justify-between relative overflow-hidden group"
           style={{ backgroundColor: THEMES[2].bg, color: THEMES[2].text }}
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-20 rounded-full blur-2xl -mr-8 -mt-8" />
@@ -156,7 +156,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
-          className="rounded-[2.5rem] p-8 min-h-[300px] flex flex-col justify-between relative overflow-hidden"
+          className="rounded-[2.5rem] p-6 md:p-8 min-h-[250px] md:min-h-[300px] flex flex-col justify-between relative overflow-hidden"
           style={{ backgroundColor: THEMES[5].bg, color: THEMES[5].text }}
         >
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-10 rounded-full blur-3xl -ml-10 -mb-10" />
@@ -176,7 +176,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          className="rounded-[2.5rem] p-8 min-h-[300px] flex flex-col justify-between relative overflow-hidden"
+          className="rounded-[2.5rem] p-6 md:p-8 min-h-[250px] md:min-h-[300px] flex flex-col justify-between relative overflow-hidden"
           style={{ backgroundColor: THEMES[3].bg, color: THEMES[3].text }}
         >
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-white opacity-20 rounded-full blur-3xl" />

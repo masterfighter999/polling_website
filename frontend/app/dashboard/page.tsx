@@ -100,12 +100,12 @@ export default function Dashboard() {
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 rounded-[2.5rem] bg-[#1A1A1A] border border-white/10 glass relative overflow-hidden"
+                    className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-[#1A1A1A] border border-white/10 glass relative overflow-hidden"
                 >
                     {/* Decorative Background */}
                     <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
 
-                    <div className="flex items-center gap-6 z-10">
+                    <div className="flex flex-col md:flex-row items-center gap-6 z-10 text-center md:text-left">
                         <div className="relative">
                             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#7C5CFF] to-[#00D1FF] flex items-center justify-center text-3xl font-black border-4 border-white/10 shadow-xl overflow-hidden">
                                 {session?.user?.image ? (
@@ -131,7 +131,7 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    <div className="flex gap-4 z-10">
+                    <div className="flex gap-4 z-10 w-full md:w-auto justify-center">
                         <div className="px-6 py-4 rounded-2xl bg-white/5 border border-white/5 text-center">
                             <div className="text-2xl font-bold">{polls.length}</div>
                             <div className="text-xs uppercase tracking-wider text-gray-500 font-bold">Polls Created</div>

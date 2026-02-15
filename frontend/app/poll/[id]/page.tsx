@@ -194,13 +194,13 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-[#0B0B0F]">
 
-            <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl items-end md:items-stretch">
+            <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl items-center md:items-stretch">
 
                 {/* Main Card */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex-1 w-full rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[400px]"
+                    className="flex-1 w-full rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[auto] md:min-h-[400px]"
                     style={{ backgroundColor: theme.bg, color: theme.text }}
                 >
                     {/* Decorative Circle */}
@@ -212,7 +212,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                             <span className="text-sm font-bold">{totalVotes} Votes</span>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl font-black leading-tight mb-8 tracking-tight break-words hyphens-auto">
+                        <h1 className="text-3xl md:text-5xl font-black leading-tight mb-8 tracking-tight break-words hyphens-auto">
                             {poll.question}
                         </h1>
                     </div>
@@ -227,7 +227,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                                     <button
                                         onClick={() => !hasVoted && handleVote(opt.id)}
                                         disabled={hasVoted || !isFairnessReady}
-                                        className="w-full relative overflow-hidden rounded-full py-4 px-8 flex justify-between items-center transition-transform active:scale-95 text-left h-auto min-h-[64px]"
+                                        className="w-full relative overflow-hidden rounded-full py-3 md:py-4 px-6 md:px-8 flex justify-between items-center transition-transform active:scale-95 text-left h-auto min-h-[56px] md:min-h-[64px]"
                                         style={{
                                             backgroundColor: theme.optionBg,
                                             color: theme.optionText,
@@ -243,7 +243,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                                             />
                                         )}
 
-                                        <span className="font-bold text-lg relative z-10 break-words w-[80%] leading-snug">{opt.text}</span>
+                                        <span className="font-bold text-base md:text-lg relative z-10 break-words w-[80%] leading-snug">{opt.text}</span>
 
                                         {hasVoted && (
                                             <span className="font-bold relative z-10">{percentage}%</span>
@@ -263,7 +263,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="w-full md:w-20 rounded-[3rem] p-4 flex md:flex-col justify-between items-center gap-4 shadow-xl border border-white/10 glass"
+                    className="w-full md:w-20 rounded-[3rem] p-4 flex flex-row md:flex-col justify-between items-center gap-4 shadow-xl border border-white/10 glass"
                     style={{ backgroundColor: '#1A1A1A' }}
                 >
                     <div className="flex flex-col items-center gap-2 text-gray-400">
@@ -285,7 +285,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                                     alert('Link copied!');
                                 }
                             }}
-                            className="w-12 h-16 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors"
+                            className="w-16 md:w-12 h-12 md:h-16 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />

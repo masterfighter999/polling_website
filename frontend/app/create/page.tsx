@@ -77,13 +77,13 @@ export default function CreatePoll() {
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-[#0B0B0F]">
 
-            <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl items-end md:items-stretch">
+            <div className="flex flex-col md:flex-row gap-4 w-full max-w-3xl items-center md:items-stretch">
 
                 {/* Main Card */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex-1 w-full rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[500px]"
+                    className="flex-1 w-full rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[auto] md:min-h-[500px]"
                     style={{ backgroundColor: theme?.bg, color: theme?.text }}
                 >
                     {/* Decorative Circle */}
@@ -100,7 +100,7 @@ export default function CreatePoll() {
                                     e.target.style.height = e.target.scrollHeight + 'px';
                                 }}
                                 placeholder="Enter your question?"
-                                className="w-full bg-transparent text-4xl md:text-5xl font-black leading-tight placeholder-current focus:outline-none resize-none overflow-hidden"
+                                className="w-full bg-transparent text-3xl md:text-5xl font-black leading-tight placeholder-current focus:outline-none resize-none overflow-hidden py-2"
                                 style={{ color: theme?.text }}
                                 rows={1}
                                 autoFocus
@@ -130,7 +130,7 @@ export default function CreatePoll() {
                                                 value={opt}
                                                 onChange={(e) => updateOption(i, e.target.value)}
                                                 placeholder={`Option ${i + 1}`}
-                                                className="w-full bg-transparent py-4 px-8 font-bold text-lg focus:outline-none placeholder-gray-500"
+                                                className="w-full bg-transparent py-3 md:py-4 px-6 md:px-8 font-bold text-base md:text-lg focus:outline-none placeholder-gray-500"
                                                 style={{ color: theme?.optionText }}
                                             />
 
@@ -165,7 +165,7 @@ export default function CreatePoll() {
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="w-full md:w-20 rounded-[3rem] p-4 flex md:flex-col justify-between items-center gap-4 shadow-xl border border-white/10 glass"
+                    className="w-full md:w-20 rounded-[3rem] p-4 flex flex-row md:flex-col justify-between items-center gap-4 shadow-xl border border-white/10 glass"
                     style={{ backgroundColor: '#1A1A1A' }}
                 >
                     <div className="flex flex-col items-center gap-4 text-gray-400">
@@ -182,7 +182,7 @@ export default function CreatePoll() {
                         <button
                             onClick={handleSubmit}
                             disabled={loading}
-                            className="w-12 h-20 rounded-[2rem] flex items-center justify-center transition-all hover:scale-105 active:scale-95 text-black font-bold shadow-lg"
+                            className="w-20 md:w-12 h-12 md:h-20 rounded-[2rem] flex items-center justify-center transition-all hover:scale-105 active:scale-95 text-black font-bold shadow-lg"
                             style={{ backgroundColor: theme?.secondary }}
                             title="Publish Poll"
                         >
