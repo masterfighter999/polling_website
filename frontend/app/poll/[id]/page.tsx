@@ -6,6 +6,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import { useRouter } from 'next/navigation';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import { useToast } from '../../components/Toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -57,6 +58,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
     const [isFairnessReady, setIsFairnessReady] = useState(false);
 
     const theme = getTheme(id);
+    const { showToast } = useToast();
 
     // Use FingerprintJS for robust identification, with fallback
     const generateFingerprint = async (): Promise<string> => {
@@ -179,9 +181,9 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
         } catch (err: any) {
             if (err.response?.status === 403) {
                 setHasVoted(true);
-                alert('You have already voted!');
+                showToast('You have already voted!', 'error');
             } else {
-                alert('Failed to submit vote');
+                showToast('Failed to submit vote', 'error');
             }
         }
     };
@@ -271,7 +273,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                             onClick={async () => {
                                 try {
                                     await navigator.clipboard.writeText(window.location.href);
-                                    alert('Link copied!');
+                                    showToast('Link copied!', 'success');
                                 } catch {
                                     // Fallback for when document is not focused
                                     const textArea = document.createElement('textarea');
@@ -282,7 +284,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                                     textArea.select();
                                     document.execCommand('copy');
                                     document.body.removeChild(textArea);
-                                    alert('Link copied!');
+                                    showToast('Link copied!', 'success');
                                 }
                             }}
                             className="w-16 md:w-12 h-12 md:h-16 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors"
