@@ -75,6 +75,7 @@ This project is engineered to handle real-world scenarios, network instability, 
 *   **Error Boundaries & User Feedback**:
     *   API failures (404, 500) trigger user-friendly error messages (Toasts) rather than crashing the UI.
     *   Duplicate vote attempts (403) are caught and clearly communicated to the user.
+    *   **Accessible Feedback System**: Replaces native browser blocking alerts with non-intrusive, fully accessible **Toast Notifications** and **Modal Dialogs**. These components support keyboard navigation (Escape to close, Focus trapping), screen readers (ARIA roles), and do not freeze the main thread, ensuring a smooth experience even during error states.
 
 ### **3. Data Integrity & Fairness**
 *   **Double-Check Locking**:

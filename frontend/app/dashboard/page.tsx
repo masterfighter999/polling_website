@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -142,6 +142,17 @@ export default function Dashboard() {
                             <div>
                                 <h1 className="text-3xl md:text-4xl font-black tracking-tight">{session?.user?.name}</h1>
                                 <p className="text-gray-400 font-medium">{session?.user?.email}</p>
+                                <button
+                                    onClick={() => signOut({ callbackUrl: '/' })}
+                                    className="mt-3 px-4 py-1.5 rounded-lg bg-white/5 border border-white/5 text-sm font-bold text-red-400 hover:bg-red-500/10 hover:border-red-500/20 transition-all flex items-center gap-2"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                        <polyline points="16 17 21 12 16 7" />
+                                        <line x1="21" y1="12" x2="9" y2="12" />
+                                    </svg>
+                                    Sign Out
+                                </button>
                             </div>
                         </div>
 
