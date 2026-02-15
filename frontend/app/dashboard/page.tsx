@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 // Funky Themes (matching poll page)
 const THEMES = [
     { bg: '#D9F99D', text: '#000000', secondary: '#84CC16', name: 'Lime' },
@@ -49,7 +51,7 @@ export default function Dashboard() {
 
     const fetchPolls = async (email: string) => {
         try {
-            const { data } = await axios.get(`http://localhost:3001/api/polls/user?email=${email}`);
+            const { data } = await axios.get(`${API_URL}/api/polls/user?email=${email}`);
             setPolls(data);
         } catch (error) {
             console.error('Failed to fetch polls', error);
@@ -63,7 +65,7 @@ export default function Dashboard() {
         e.stopPropagation();
         if (!confirm('Are you sure you want to delete this poll?')) return;
         try {
-            await axios.delete(`http://localhost:3001/api/polls/${pollId}`);
+            await axios.delete(`${API_URL}/api/polls/${pollId}`);
             setPolls(polls.filter(p => p.id !== pollId));
         } catch (error) {
             console.error('Failed to delete poll', error);

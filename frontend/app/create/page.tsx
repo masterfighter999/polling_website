@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 // Funky Themes
 const THEMES = [
     { bg: '#D9F99D', text: '#000000', optionBg: '#000000', optionText: '#FFFFFF', secondary: '#84CC16', name: 'Lime' },
@@ -60,7 +62,7 @@ export default function CreatePoll() {
         setLoading(true);
 
         try {
-            const { data } = await axios.post('http://localhost:3001/api/polls', {
+            const { data } = await axios.post(`${API_URL}/api/polls`, {
                 question,
                 options,
                 creatorEmail: session?.user?.email
