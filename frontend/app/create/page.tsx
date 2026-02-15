@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import axios from 'axios';
 
 // Funky Themes
@@ -18,6 +19,7 @@ const THEMES = [
 
 export default function CreatePoll() {
     const router = useRouter();
+    const { data: session } = useSession();
     const [question, setQuestion] = useState('');
     const [options, setOptions] = useState(['', '']);
     const [loading, setLoading] = useState(false);
@@ -60,7 +62,8 @@ export default function CreatePoll() {
         try {
             const { data } = await axios.post('http://localhost:3001/api/polls', {
                 question,
-                options
+                options,
+                creatorEmail: session?.user?.email
             });
             router.push(`/poll/${data.id}`);
         } catch (err) {
