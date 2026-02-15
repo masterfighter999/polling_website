@@ -57,8 +57,8 @@ async function start() {
         // Initialize Socket.IO
         initializeSocket(server, CORS_ORIGIN);
 
-        server.listen(PORT, () => {
-            console.log(`\n🚀 Backend server running on http://localhost:${PORT}`);
+        server.listen(PORT, '0.0.0.0', () => {
+            console.log(`\n🚀 Backend server running on http://0.0.0.0:${PORT}`);
             console.log(`📡 Socket.IO ready for real-time updates`);
             console.log(`🔗 CORS enabled for: ${CORS_ORIGIN}\n`);
         });
