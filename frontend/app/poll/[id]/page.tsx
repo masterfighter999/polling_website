@@ -7,6 +7,8 @@ import io from 'socket.io-client';
 import { useRouter } from 'next/navigation';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 // Type definitions
 interface Option {
     id: number;
@@ -52,41 +54,71 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
     const [votedOptionId, setVotedOptionId] = useState<number | null>(null);
     const [error, setError] = useState('');
     const [fingerprint, setFingerprint] = useState('');
-    const [ipAddress, setIpAddress] = useState('');
+    const [isFairnessReady, setIsFairnessReady] = useState(false);
 
     const theme = getTheme(id);
 
-    // Use FingerprintJS for robust identification
-    const generateFingerprint = async () => {
-        const fpPromise = FingerprintJS.load();
-        const fp = await fpPromise;
-        const result = await fp.get();
-        return result.visitorId;
+    // Use FingerprintJS for robust identification, with fallback
+    const generateFingerprint = async (): Promise<string> => {
+        try {
+            const fpPromise = FingerprintJS.load();
+            const fp = await fpPromise;
+            const result = await fp.get();
+            return result.visitorId;
+        } catch (err) {
+            console.warn('FingerprintJS unavailable, using fallback:', err);
+            // Check for a previously persisted fallback fingerprint
+            const stored = localStorage.getItem('poll_app_fp_fallback');
+            if (stored) return stored;
+
+            // Generate a fallback UUID with broad browser compatibility
+            let fallbackFp: string;
+            try {
+                if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+                    fallbackFp = crypto.randomUUID();
+                } else if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+                    // UUIDv4 from getRandomValues
+                    const bytes = new Uint8Array(16);
+                    crypto.getRandomValues(bytes);
+                    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+                    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+                    const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+                    fallbackFp = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+                } else {
+                    // Last resort: Date + Math.random
+                    fallbackFp = `${Date.now().toString(36)}-${Math.random().toString(36).substring(2)}-${Math.random().toString(36).substring(2)}`;
+                }
+            } catch {
+                fallbackFp = `${Date.now().toString(36)}-${Math.random().toString(36).substring(2)}-${Math.random().toString(36).substring(2)}`;
+            }
+
+            // Persist so subsequent calls return the same fingerprint
+            localStorage.setItem('poll_app_fp_fallback', fallbackFp);
+            return fallbackFp;
+        }
     };
 
     useEffect(() => {
-        const setupFairness = async () => {
-            // Fingerprint check
-            let fp = localStorage.getItem('poll_app_fp_v3');
-            if (!fp) {
-                fp = await generateFingerprint();
-                localStorage.setItem('poll_app_fp_v3', fp);
-            }
-            setFingerprint(fp);
+        const init = async () => {
+            // Await fairness setup before fetching poll data
+            const setupFairness = async () => {
+                // Fingerprint check
+                let fp = localStorage.getItem('poll_app_fp_v3');
+                if (!fp) {
+                    fp = await generateFingerprint();
+                    localStorage.setItem('poll_app_fp_v3', fp);
+                }
+                setFingerprint(fp);
+                setIsFairnessReady(true);
+            };
 
-            // IP address check
-            try {
-                const { data } = await axios.get('https://api64.ipify.org?format=json');
-                setIpAddress(data.ip);
-            } catch (err) {
-                console.error('Failed to fetch IP', err);
-            }
+            await setupFairness();
+            fetchPoll();
         };
 
-        setupFairness();
-        fetchPoll();
+        init();
 
-        socket = io('http://localhost:3001');
+        socket = io(API_URL);
         socket.emit('join_poll', id);
 
         socket.on('poll_update', (updatedPoll: any) => {
@@ -110,7 +142,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
 
     const fetchPoll = async () => {
         try {
-            const { data } = await axios.get(`http://localhost:3001/api/polls/${id}`);
+            const { data } = await axios.get(`${API_URL}/api/polls/${id}`);
             setPoll(data);
             if (typeof window !== 'undefined') {
                 // Check if we voted in this session/browser apart from localStorage
@@ -129,11 +161,16 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
     };
 
     const handleVote = async (optionId: number) => {
+        // Block voting until fairness checks are complete
+        if (!isFairnessReady || !fingerprint) {
+            return;
+        }
+
         try {
-            await axios.post(`http://localhost:3001/api/polls/${id}/vote`, {
+            // Only send optionId and voterHash — server derives IP on its own
+            await axios.post(`${API_URL}/api/polls/${id}/vote`, {
                 optionId,
                 voterHash: fingerprint,
-                ipAddress: ipAddress
             });
 
             setHasVoted(true);
@@ -189,7 +226,7 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                                 <div key={opt.id} className="relative group">
                                     <button
                                         onClick={() => !hasVoted && handleVote(opt.id)}
-                                        disabled={hasVoted}
+                                        disabled={hasVoted || !isFairnessReady}
                                         className="w-full relative overflow-hidden rounded-full py-4 px-8 flex justify-between items-center transition-transform active:scale-95 text-left h-auto min-h-[64px]"
                                         style={{
                                             backgroundColor: theme.optionBg,
@@ -231,9 +268,22 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
                 >
                     <div className="flex flex-col items-center gap-2 text-gray-400">
                         <button
-                            onClick={() => {
-                                navigator.clipboard.writeText(window.location.href);
-                                alert('Link copied!');
+                            onClick={async () => {
+                                try {
+                                    await navigator.clipboard.writeText(window.location.href);
+                                    alert('Link copied!');
+                                } catch {
+                                    // Fallback for when document is not focused
+                                    const textArea = document.createElement('textarea');
+                                    textArea.value = window.location.href;
+                                    textArea.style.position = 'fixed';
+                                    textArea.style.opacity = '0';
+                                    document.body.appendChild(textArea);
+                                    textArea.select();
+                                    document.execCommand('copy');
+                                    document.body.removeChild(textArea);
+                                    alert('Link copied!');
+                                }
                             }}
                             className="w-12 h-16 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors"
                         >

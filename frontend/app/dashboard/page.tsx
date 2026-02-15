@@ -36,7 +36,7 @@ interface Poll {
 }
 
 export default function Dashboard() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const router = useRouter();
     const [polls, setPolls] = useState<Poll[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,7 +71,17 @@ export default function Dashboard() {
         }
     };
 
-    if (!session) {
+    // Show loading placeholder while session is being fetched
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#0B0B0F] text-white">
+                <div className="text-center text-gray-400">Loading...</div>
+            </div>
+        );
+    }
+
+    // Show sign-in prompt only when confirmed unauthenticated
+    if (status === "unauthenticated") {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#0B0B0F] text-white">
                 <div className="text-center">
@@ -98,26 +108,26 @@ export default function Dashboard() {
                     <div className="flex items-center gap-6 z-10">
                         <div className="relative">
                             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#7C5CFF] to-[#00D1FF] flex items-center justify-center text-3xl font-black border-4 border-white/10 shadow-xl overflow-hidden">
-                                {session.user?.image ? (
+                                {session?.user?.image ? (
                                     <img
                                         src={session.user.image}
                                         alt="Profile"
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
                                             e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement!.classList.remove('bg-transparent');
+                                            e.currentTarget.parentElement?.classList.remove('bg-transparent');
                                         }}
                                     />
                                 ) : (
-                                    <span>{session.user?.name?.[0] || 'U'}</span>
+                                    <span>{session?.user?.name?.[0] || 'U'}</span>
                                 )}
                             </div>
                             <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-[#1A1A1A]" />
                         </div>
 
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black tracking-tight">{session.user?.name}</h1>
-                            <p className="text-gray-400 font-medium">{session.user?.email}</p>
+                            <h1 className="text-3xl md:text-4xl font-black tracking-tight">{session?.user?.name}</h1>
+                            <p className="text-gray-400 font-medium">{session?.user?.email}</p>
                         </div>
                     </div>
 

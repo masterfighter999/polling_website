@@ -7,8 +7,8 @@ import dotenv from 'dotenv';
 // Load environment variables FIRST
 dotenv.config();
 
-// Required for Aiven's self-signed CA certificate chain
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// NOTE: Removed process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+// The Aiven CA is loaded in db/index.ts and passed via ssl.ca with rejectUnauthorized: true
 
 import { initializeDatabase } from './db/init';
 import { initializeSocket } from './socket';
@@ -39,8 +39,9 @@ const voteLimiter = rateLimit({
 });
 
 // ─── Routes ───────────────────────────────────────────────────
-app.use('/api/polls', pollRoutes);
+// Register voteLimiter BEFORE pollRoutes so it runs for /api/polls/:id/vote
 app.use('/api/polls/:id/vote', voteLimiter);
+app.use('/api/polls', pollRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

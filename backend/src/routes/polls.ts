@@ -1,15 +1,32 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import pool from '../db/index';
 import { broadcastPollUpdate } from '../socket';
 
 const router = Router();
+
+// HMAC secret for IP hashing — set IP_HASH_SECRET in .env for persistence across restarts
+const IP_HASH_SECRET = process.env.IP_HASH_SECRET || (() => {
+    const fallback = crypto.randomBytes(32).toString('hex');
+    console.warn('⚠️  IP_HASH_SECRET not set — using random secret (hashes won\'t persist across restarts)');
+    return fallback;
+})();
+
+/**
+ * Compute a deterministic, keyed HMAC-SHA256 hash of an IP address.
+ * This prevents storing raw IP (PII) while allowing duplicate detection.
+ */
+function hashIp(ip: string): string {
+    return crypto.createHmac('sha256', IP_HASH_SECRET).update(ip).digest('hex');
+}
 
 // ─── CREATE POLL ──────────────────────────────────────────────
 // POST /api/polls
 // Body: { question: string, options: string[] }
 // Returns: { id: string }
 router.post('/', async (req: Request, res: Response): Promise<void> => {
+    const client = await pool.connect();
     try {
         const { question, options, creatorEmail } = req.body;
 
@@ -40,24 +57,32 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 
         const pollId = uuidv4();
 
+        // Use a transaction to ensure atomicity
+        await client.query('BEGIN');
+
         // Insert poll
-        await pool.query(
+        await client.query(
             'INSERT INTO polls (id, question, creator_email) VALUES ($1, $2, $3)',
             [pollId, question.trim(), creatorEmail || null]
         );
 
         // Insert options
         for (let i = 0; i < filteredOptions.length; i++) {
-            await pool.query(
+            await client.query(
                 'INSERT INTO options (poll_id, text, position) VALUES ($1, $2, $3)',
                 [pollId, filteredOptions[i].trim(), i]
             );
         }
 
+        await client.query('COMMIT');
+
         res.status(201).json({ id: pollId });
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error creating poll:', error);
         res.status(500).json({ error: 'Failed to create poll' });
+    } finally {
+        client.release();
     }
 });
 
@@ -138,20 +163,33 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
 
 // ─── VOTE ON POLL ─────────────────────────────────────────────
 // POST /api/polls/:id/vote
-// Body: { optionId: number, voterHash: string, ipAddress: string }
+// Body: { optionId: number, voterHash: string }
 router.post('/:id/vote', async (req: Request, res: Response): Promise<void> => {
     try {
         const id = req.params.id as string;
-        const { optionId, voterHash, ipAddress } = req.body;
+        const { optionId, voterHash } = req.body;
 
-        // Validation
-        if (!optionId || !voterHash) {
-            res.status(400).json({ error: 'optionId and voterHash are required' });
+        // Validate optionId is a valid positive integer
+        const parsedOptionId = Number(optionId);
+        if (!Number.isInteger(parsedOptionId) || parsedOptionId <= 0) {
+            res.status(400).json({ error: 'optionId must be a valid number' });
             return;
         }
 
-        // Use the client IP from the request if ipAddress is not provided
-        const voterIp = ipAddress || req.ip || 'unknown';
+        // Validate voterHash presence
+        if (!voterHash) {
+            res.status(400).json({ error: 'voterHash is required' });
+            return;
+        }
+
+        // Derive IP strictly from server-side sources (never trust client body)
+        const voterIp = req.ip || req.socket.remoteAddress;
+        if (!voterIp) {
+            console.warn(`⚠️  Could not determine IP for vote on poll ${id} (User-Agent: ${req.headers['user-agent'] || 'unknown'})`);
+            res.status(400).json({ error: 'Unable to determine client IP address' });
+            return;
+        }
+        const ipHash = hashIp(voterIp);
 
         // Check poll exists
         const pollResult = await pool.query(
@@ -174,7 +212,7 @@ router.post('/:id/vote', async (req: Request, res: Response): Promise<void> => {
         // Check option belongs to this poll
         const optionResult = await pool.query(
             'SELECT id FROM options WHERE id = $1 AND poll_id = $2',
-            [optionId, id]
+            [parsedOptionId, id]
         );
 
         if (optionResult.rows.length === 0) {
@@ -182,12 +220,12 @@ router.post('/:id/vote', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Try to insert vote — unique constraints handle anti-abuse
+        // Try to insert vote — unique constraint on voter_hash handles anti-abuse
         try {
             await pool.query(
-                `INSERT INTO votes (option_id, poll_id, voter_hash, ip_address)
+                `INSERT INTO votes (option_id, poll_id, voter_hash, ip_hash)
                  VALUES ($1, $2, $3, $4)`,
-                [optionId, id, voterHash, voterIp]
+                [parsedOptionId, id, voterHash, ipHash]
             );
         } catch (dbError: any) {
             // Unique constraint violation = duplicate vote

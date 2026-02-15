@@ -23,23 +23,40 @@ CREATE TABLE IF NOT EXISTS options (
     position INTEGER NOT NULL DEFAULT 0
 );
 
--- Votes table
+-- Votes table (ip_hash stores HMAC-SHA256 of the IP, not raw IP)
 CREATE TABLE IF NOT EXISTS votes (
     id SERIAL PRIMARY KEY,
     option_id INTEGER NOT NULL REFERENCES options(id) ON DELETE CASCADE,
     poll_id UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
     voter_hash TEXT NOT NULL,
-    ip_address TEXT NOT NULL,
+    ip_hash TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Anti-abuse: one vote per fingerprint per poll
+-- Safe migration: Rename ip_address → ip_hash if old column exists
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'votes' AND column_name = 'ip_address') THEN
+        ALTER TABLE votes RENAME COLUMN ip_address TO ip_hash;
+    END IF;
+END $$;
+
+-- Anti-abuse: one vote per fingerprint per poll (keep this)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_poll_voter
     ON votes (poll_id, voter_hash);
 
--- Anti-abuse: one vote per IP per poll
-CREATE UNIQUE INDEX IF NOT EXISTS idx_votes_poll_ip
-    ON votes (poll_id, ip_address);
+-- Drop the old unique IP constraint if it exists
+-- (unique IP per poll was too restrictive for shared networks)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_votes_poll_ip') THEN
+        DROP INDEX idx_votes_poll_ip;
+    END IF;
+END $$;
+
+-- Non-unique index on ip_hash for rate-limiting lookups (application-layer abuse control)
+CREATE INDEX IF NOT EXISTS idx_votes_poll_ip_hash
+    ON votes (poll_id, ip_hash);
 
 -- Performance index for fetching options by poll
 CREATE INDEX IF NOT EXISTS idx_options_poll_id
