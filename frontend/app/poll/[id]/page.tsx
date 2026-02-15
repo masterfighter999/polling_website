@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import io from 'socket.io-client';
 import { useRouter } from 'next/navigation';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 // Type definitions
 interface Option {
@@ -51,17 +52,38 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
     const [votedOptionId, setVotedOptionId] = useState<number | null>(null);
     const [error, setError] = useState('');
     const [fingerprint, setFingerprint] = useState('');
+    const [ipAddress, setIpAddress] = useState('');
 
     const theme = getTheme(id);
 
-    useEffect(() => {
-        let fp = localStorage.getItem('poll_app_fp');
-        if (!fp) {
-            fp = Math.random().toString(36).substring(2) + Date.now().toString(36);
-            localStorage.setItem('poll_app_fp', fp);
-        }
-        setFingerprint(fp);
+    // Use FingerprintJS for robust identification
+    const generateFingerprint = async () => {
+        const fpPromise = FingerprintJS.load();
+        const fp = await fpPromise;
+        const result = await fp.get();
+        return result.visitorId;
+    };
 
+    useEffect(() => {
+        const setupFairness = async () => {
+            // Fingerprint check
+            let fp = localStorage.getItem('poll_app_fp_v3');
+            if (!fp) {
+                fp = await generateFingerprint();
+                localStorage.setItem('poll_app_fp_v3', fp);
+            }
+            setFingerprint(fp);
+
+            // IP address check
+            try {
+                const { data } = await axios.get('https://api64.ipify.org?format=json');
+                setIpAddress(data.ip);
+            } catch (err) {
+                console.error('Failed to fetch IP', err);
+            }
+        };
+
+        setupFairness();
         fetchPoll();
 
         socket = io('http://localhost:3001');
@@ -110,7 +132,8 @@ export default function PollPage({ params }: { params: Promise<{ id: string }> }
         try {
             await axios.post(`http://localhost:3001/api/polls/${id}/vote`, {
                 optionId,
-                voterHash: fingerprint
+                voterHash: fingerprint,
+                ipAddress: ipAddress
             });
 
             setHasVoted(true);

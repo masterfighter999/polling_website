@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useSession, signIn } from "next-auth/react";
 
 // Funky Themes
 const THEMES = [
@@ -18,6 +19,7 @@ const THEMES = [
 
 export default function Home() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [theme, setTheme] = useState(THEMES[0]);
 
   useEffect(() => {
@@ -58,14 +60,29 @@ export default function Home() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/create" className="w-full sm:w-auto">
-                  <button
-                    className="w-full sm:w-auto px-10 py-5 rounded-full font-bold text-xl transition-transform hover:scale-105 active:scale-95 shadow-lg"
-                    style={{ backgroundColor: theme?.optionBg, color: theme?.optionText }}
-                  >
-                    Create Poll
-                  </button>
-                </Link>
+
+                {session && (
+                  <Link href="/dashboard">
+                    <button
+                      className="w-full sm:w-auto px-10 py-5 rounded-full font-bold text-xl transition-transform hover:scale-105 active:scale-95 shadow-lg border-2 border-current bg-transparent"
+                    >
+                      Dashboard
+                    </button>
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    if (session) {
+                      router.push('/create');
+                    } else {
+                      signIn('google', { callbackUrl: '/create' });
+                    }
+                  }}
+                  className="w-full sm:w-auto px-10 py-5 rounded-full font-bold text-xl transition-transform hover:scale-105 active:scale-95 shadow-lg"
+                  style={{ backgroundColor: theme?.optionBg, color: theme?.optionText }}
+                >
+                  Create Poll
+                </button>
               </div>
             </motion.div>
           </div>
