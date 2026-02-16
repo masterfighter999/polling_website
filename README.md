@@ -77,11 +77,20 @@ This project is engineered to handle real-world scenarios, network instability, 
     *   Duplicate vote attempts (403) are caught and clearly communicated to the user.
     *   **Accessible Feedback System**: Replaces native browser blocking alerts with non-intrusive, fully accessible **Toast Notifications** and **Modal Dialogs**. These components support keyboard navigation (Escape to close, Focus trapping), screen readers (ARIA roles), and do not freeze the main thread, ensuring a smooth experience even during error states.
 
-### **3. Data Integrity & Fairness**
-*   **Double-Check Locking**:
-    *   **Layer 1 (Frontend)**: Checks `localStorage` and `hasVoted` state to prevent UI double-submission.
-    *   **Layer 2 (Database)**: Uses **Unique Constraints** on composite keys (`poll_id` + `voter_hash`) to fundamentally prevent duplicate records at the database level.
-    *   **Layer 3 (IP Hashing)**: IP addresses are salted and hashed (HMAC-SHA256) before storage to balance **privacy** (no raw IPs) with **security** (detecting IP-based vote spam).
+### **3. Fairness System (Anti-Abuse Engine)**
+This platform implements a multi-layered verification system to ensure "one person, one vote" integrity.
+
+1.  **Browser Fingerprinting**: 
+    *   *Definition*: A technique that combines various browser and device properties (like screen resolution, installed fonts, and browser version) to create a unique identifier for a device without using cookies.
+    *   *Implementation*: Enforced at the **Database Level** via a Unique Index on `(poll_id, voter_hash)`. This blocks duplicate votes even if a user clears their browser data or uses "Incognito" mode.
+
+2.  **State Persistence (LocalStorage)**: 
+    *   *Definition*: A web storage mechanism that allows websites to store data locally within the user's browser with no expiration date.
+    *   *Implementation*: Used as the **Frontend Layer** to provide an immediate responsive experience. Once a vote is cast, a record is saved in the browser’s storage to instantly hide voting buttons on subsequent visits.
+
+3.  **IP Hashing & Rate Limiting**: 
+    *   *Definition*: **IP Hashing** converts an IP address into a fixed-length string of characters (HMAC-SHA256) to verify uniqueness without storing the raw IP (PII). **Rate Limiting** restricts the number of requests a user can make within a specific timeframe.
+    *   *Implementation*: Acts as the **Network Security Layer**. It protects the server from brute-force voting scripts by limiting every IP to a maximum of 20 vote attempts per minute.
 
 ---
 
