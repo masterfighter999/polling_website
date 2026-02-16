@@ -20,15 +20,22 @@ The application follows a decoupled client-server architecture to ensure scalabi
 
 ### **Frontend (Client)**
 *   **Framework**: Next.js 15 (App Router)
-*   **Styling**: Tailwind CSS v4, Framer Motion
-*   **State/Network**: Axios, Socket.IO Client
-*   **Identification**: FingerprintJS (with fallbacks)
+*   **Styling**: Tailwind CSS v4, Framer Motion (Animations)
+*   **Data Fetching**: Axios
+*   **Real-time Interaction**: Socket.IO Client
+*   **Authentication**: Next-Auth (v5 Beta)
+*   **Device Identification**: @fingerprintjs/fingerprintjs
 
 ### **Backend (Server)**
 *   **Runtime**: Node.js, Express
-*   **Real-time**: Socket.IO Server
-*   **Database**: PostgreSQL (via Aiven), Prisma ORM
-*   **Security**: Rate Limiting, CORS, Helmet (implied), Input Validation
+*   **Real-time Communication**: Socket.IO Server
+*   **Database Access**: Prisma ORM, pg (PostgreSQL driver)
+*   **Security & Utils**: 
+    *   `express-rate-limit` (Anti-DDoS/Vote abuse)
+    *   `uuid` (Safe ID generation)
+    *   `dotenv` (Configuration management)
+    *   `cors` (Cross-origin resource sharing)
+    *   `crypto` (Native node module for IP hashing)
 
 ### **Infrastructure**
 *   **Database**: PostgreSQL (Cloud-hosted)
